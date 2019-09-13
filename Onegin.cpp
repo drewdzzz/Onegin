@@ -1,4 +1,13 @@
 /// @file
+
+
+// Log of changes:
+//-----------------------------------------------------------------------------
+//Version 1.1
+//
+//Comporator doesn't change strings
+//-----------------------------------------------------------------------------
+
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -23,11 +32,11 @@ void  stringmaker ( char* poem_arr, long number_of_strings );
 /// @param *poem_arr Array containing text
 /// @param **pointers Array with pointers
 /// @param number_of_strings Number of strings
-void  makeptr (char* poem_arr, char** pointers, long number_of_strings);
+void  makeptr ( char* poem_arr, char** pointers, long number_of_strings);
 
 /// @brief Compare 2 strings
 /// @return Returns difference between first mismatching symbols in strings or returns 0 if first string if equal second one
-int   strcmp ( char* string1, char* string2 );
+int   strcmp ( const char* string1, const char* string2 );
 
 /// @brief Swap 2 strings in an array
 /// @param mySwappingArray Array with strings
@@ -49,6 +58,11 @@ FILE* open_file ();
 /// @param **stringpointer Array containing pointers to strings
 /// @param **number_of_strings Number of strings;
 void write_in_file ( char** stringpointer, long number_of_strings);
+
+
+/// @param  [in] ch A symbol
+/// @return ch if it is a lowercase letter or lowercase analogue of ch
+char lowercase_letter (char ch);
 
 int main()
 {
@@ -144,7 +158,7 @@ void stringmaker ( char* poem_arr, long number_of_strings )
     }
 }
 
-void makeptr (char* poem_arr, char** pointers, long number_of_strings)
+void makeptr ( char* poem_arr, char** pointers, long number_of_strings)
 {
     assert ( *poem_arr );
     assert ( poem_arr );
@@ -169,7 +183,7 @@ void makeptr (char* poem_arr, char** pointers, long number_of_strings)
     pointers = temp_pointers;
 }
 
-int strcmp ( char* string1, char* string2 )
+int strcmp ( const char* string1, const char* string2 )
 {
     assert ( string1 );
     assert ( string2 );
@@ -177,16 +191,13 @@ int strcmp ( char* string1, char* string2 )
     int i = 0;
     while ( string1[i] != '\0' && string2[i] != '\0' )
     {
-        if ( string1[i] >= 'A' && string1[i] <= 'Z' ) string1[i] += ('a' - 'A');
-        if ( string2[i] >= 'A' && string2[i] <= 'Z' ) string2[i] += ('a' - 'A');
-        if ( string1[i] != string2[i] ) return string1[i] - string2[i];
+        if ( lowercase_letter (string1[i]) != lowercase_letter (string2[i]) ) return lowercase_letter (string1[i]) - lowercase_letter (string2[i]);
         i++;
     }
-
-    return string1[i] - string2[i];
+    return lowercase_letter (string1[i]) - lowercase_letter (string2[i]);
 }
 
-void mySwap (char** swap_array, long a, long b)
+void mySwap ( char** swap_array, long a, long b)
 {
     assert (isfinite(a));
     assert (isfinite(b));
@@ -197,7 +208,7 @@ void mySwap (char** swap_array, long a, long b)
     swap_array [b] = temp;
 }
 
-void quicksort ( char** arr, long left, long right)
+void quicksort (char** arr, long left, long right)
 {
     assert (arr);
     assert ( isfinite (left) );
@@ -211,7 +222,7 @@ void quicksort ( char** arr, long left, long right)
     }
     long beginning = left;
     long ending = right;
-    char* mid = arr[ (left + right) / 2];
+    const char* mid = arr[ (left + right) / 2];
     while (left < right)
     {
         while ( strcmp( arr[left], mid ) < 0 ) left++;
@@ -225,4 +236,10 @@ void quicksort ( char** arr, long left, long right)
     }
     quicksort ( arr, beginning, right);
     quicksort ( arr, left, ending);
+}
+
+char lowercase_letter (const char ch)
+{
+    if ( ch >= 'A' && ch <= 'Z' ) return ch + ('a' - 'A');
+    return ch;
 }
