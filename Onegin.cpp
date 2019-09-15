@@ -2,9 +2,9 @@
 
 
 // Log of changes:
-//-----------------------------------------------------------------------------
+//{----------------------------------------------------------------------------
 // Version 1.1
-// -Comporator doesn't change strings
+// -comparator doesn't change strings
 //-----------------------------------------------------------------------------
 // Version 1.2
 // -Quicksort has new param: strcmp
@@ -14,7 +14,7 @@
 // pointer to end of string (e_str) and pointer to beginning of string (b_str)
 //-----------------------------------------------------------------------------
 // Version 1.4
-// Added reversed comporator, \0 in the beginnng of poem
+// Added reversed comparator, \0 in the beginning of poem
 //-----------------------------------------------------------------------------
 // Version 1.5
 // Added consts
@@ -23,8 +23,12 @@
 // Mentor's requests were executed
 //-----------------------------------------------------------------------------
 // Version 1.7
-// Included Unit-tests for comporators
+// Included Unit-tests for comparators
 //-----------------------------------------------------------------------------
+// Version 1.8
+// Included Unit-tests for lowercase_letter
+//}----------------------------------------------------------------------------
+
 
 
 #include <stdio.h>
@@ -75,7 +79,6 @@ FILE* open_file ();
 /// @param **number_of_strings Number of strings;
 void write_in_file ( pointer* stringpointer, const long number_of_strings);
 
-
 /// @param  [in] ch A symbol
 /// @return ch if it is a lowercase letter or lowercase analogue of ch
 char lowercase_letter (char ch);
@@ -84,14 +87,21 @@ char lowercase_letter (char ch);
 /// @return Returns difference between first mismatching symbols in strings or returns 0 if first string if equal second one
 int reversed_strcmp ( const pointer string1, const pointer string2);
 
+
+
 /// @brief Complex of tests for direct_strcmp
 void test_direct_strcmp ();
 
 /// @brief Complex of tests for reversed_strcmp
 void test_reversed_strcmp ();
 
+/// @brief Complex of tests for lowercase_letter
+void test_lowercase_letter ();
+
 /// @brief Uses all the tests
 void tests();
+
+
 
 ///@brief Struct containing 2 pointers: pointer to the beginning of string and pointer to the ending of the same string
 struct pointer
@@ -105,44 +115,65 @@ const int FLEN = 300;
 int main()
 {
     tests();
+
+//-----------------------------------------------------------------------------     Вынести в функцию
+
     FILE* stream = open_file ();
     if (!stream) return 1;
+
     const long file_size = size_of_file ( stream );
+
     char* poem_arr = (char*) calloc ( file_size+2, sizeof(char) );
     if ( !poem_arr )
     {
         printf ("Memory can't be allocated\n");
         return 1;
     }
+
     *poem_arr = '\0';
     poem_arr++;
+
     const long number_of_symbols = fread ( poem_arr, sizeof(char), file_size, stream );
     poem_arr[number_of_symbols] = '\0';
+
     fclose (stream);
+
+//-----------------------------------------------------------------------------   Тоже в функцию
+
     const long number_of_strings = stringcount ( poem_arr );
+
     pointer* stringpointer = (pointer*)calloc ( number_of_strings, sizeof (pointer) );
     makeptr (poem_arr, stringpointer, number_of_strings);
+
+//-----------------------------------------------------------------------------
+
     quicksort (stringpointer, 0, number_of_strings-1, direct_strcmp);
     printf ("Enter output file name for a normal sort: ");
     write_in_file ( stringpointer, number_of_strings);
+
     quicksort (stringpointer, 0, number_of_strings-1, reversed_strcmp);
     printf ("Enter output file name for a sort from the end: ");
     write_in_file ( stringpointer, number_of_strings);
+
     free(stringpointer);
+    stringpointer = NULL;
+
     free(poem_arr);
+    poem_arr = NULL;
+
     return 0;
 }
 
-FILE* open_file()
+FILE* open_file()                             //Параметр по умолчанию
 {
-    FILE* stream;
+    FILE* stream = NULL;
     char INPUT_FILE_NAME[FLEN] = "";
     printf ("Enter input file name: ");
     scanf("%s", INPUT_FILE_NAME);
     if ( !( stream = fopen ( INPUT_FILE_NAME, "r") ) )
     {
-        fprintf (stderr, "Input file is not open\n");
-        return 0;
+        fprintf (stderr, "Input file is not open\n");   //Вывод предупреждения в main
+        return nullptr;
     }
     return stream;
 }
@@ -150,9 +181,9 @@ FILE* open_file()
 void write_in_file( pointer* stringpointer, const long number_of_strings)
 {
     assert (stringpointer);
-    assert ( isfinite (number_of_strings) );
+    assert ( 0 < number_of_strings );
 
-    FILE* stream;
+    FILE* stream = NULL;
     char OUTPUT_FILE_NAME[FLEN] = "";
     scanf ("%s", OUTPUT_FILE_NAME);
     if ( !( stream = fopen ( OUTPUT_FILE_NAME, "w") ) )
@@ -160,11 +191,13 @@ void write_in_file( pointer* stringpointer, const long number_of_strings)
         fprintf (stderr, "Input file is not open\n");
         return;
     }
+
     for ( int i = 0; i < number_of_strings; i++)
     {
         fprintf(stream, "%s\n", stringpointer->b_ptr );
         stringpointer++;
     }
+
     fclose (stream);
 }
 
@@ -178,7 +211,7 @@ long size_of_file (FILE* stream)
     return filesize;
 }
 
-long stringcount ( char* poem_arr )
+long stringcount ( char* poem_arr )     //TODO Изменить название, лучше сделать второй параметр на замену \n нулями
 {
     assert (  poem_arr );
     assert ( *poem_arr );
@@ -201,7 +234,7 @@ void makeptr ( char* poem_arr, pointer* pointers, long number_of_strings)
     assert ( poem_arr );
     assert ( *poem_arr );
     assert ( pointers );
-    assert ( isfinite (number_of_strings) );
+    assert ( 0 < number_of_strings );
 
     long i = 1;
     pointers->b_ptr=poem_arr++;
@@ -227,8 +260,8 @@ void makeptr ( char* poem_arr, pointer* pointers, long number_of_strings)
 
 void mySwap ( pointer* swap_array, long a, long b)
 {
-    assert (isfinite(a));
-    assert (isfinite(b));
+    assert (isfinite(a));   //
+    assert (isfinite(b));   //
     assert (swap_array != NULL);
 
     pointer temp = swap_array[a];
@@ -239,15 +272,15 @@ void mySwap ( pointer* swap_array, long a, long b)
 void quicksort (pointer* arr, long left, long right, int (*strcmp) ( const pointer string1, const pointer string2 ))
 {
     assert (arr);
-    assert ( isfinite (left) );
-    assert ( isfinite (right) );
+    assert ( isfinite (left) ); //
+    assert ( isfinite (right) ); //
 
     if ( right <= left ) return;
     if ( right - left == 1 )
     {
         if ( strcmp( arr[left], arr[right]) > 0 )   mySwap ( arr, left, right );
         return;
-    }
+    }                                                                                      //!!! Рандом
     const long beginning = left;
     const long ending = right;
     const pointer mid = arr[ (left + right) / 2];
@@ -305,6 +338,7 @@ int reversed_strcmp ( const pointer string1, const pointer string2)
 
 
 
+
 void tests()
 {
     char wanna_test = 0;
@@ -315,8 +349,11 @@ void tests()
     {
         test_direct_strcmp ();
         test_reversed_strcmp ();
+        test_lowercase_letter ();
     }
 }
+
+
 
 
 void test_direct_strcmp1 ()
@@ -379,6 +416,8 @@ void test_direct_strcmp ()
 
 
 
+
+
 void test_reversed_strcmp1 ()
 {
     const char* string1 = "abcd";
@@ -426,6 +465,7 @@ void test_reversed_strcmp4 ()
     assert( reversed_strcmp (ptr2, ptr1) == -1 );
     printf ("first reversed_strcmp test done!!!\n");
 }
+
 void test_reversed_strcmp ()
 {
     test_reversed_strcmp1 ();
@@ -433,4 +473,59 @@ void test_reversed_strcmp ()
     test_reversed_strcmp3 ();
     test_reversed_strcmp4 ();
     printf ("REVERSED_STRCMP WORKS\n\n");
+}
+
+
+
+
+
+
+
+void test_lowercase_letter1 ()
+{
+    assert (lowercase_letter ('L') == 'l');
+    assert (lowercase_letter ('f') == 'f');
+    assert (lowercase_letter ('D') == 'd');
+    assert (lowercase_letter ('T') == 't');
+    assert (lowercase_letter ('r') == 'r');
+    printf ("first lowercase_letter test done!!!\n");
+}
+
+void test_lowercase_letter2 ()
+{
+    assert (lowercase_letter ('t') == 't');
+    assert (lowercase_letter ('p') == 'p');
+    assert (lowercase_letter ('o') == 'o');
+    assert (lowercase_letter ('i') == 'i');
+    assert (lowercase_letter ('k') == 'k');
+    printf ("second lowercase_letter test done!!!\n");
+}
+
+void test_lowercase_letter3 ()
+{
+    assert (lowercase_letter ('j') == 'j');
+    assert (lowercase_letter ('J') == 'j');
+    assert (lowercase_letter ('k') == 'k');
+    assert (lowercase_letter ('K') == 'k');
+    assert (lowercase_letter ('l') == 'l');
+    printf ("third lowercase_letter test done!!!\n");
+}
+
+void test_lowercase_letter4 ()
+{
+    assert (lowercase_letter ('A') == 'a');
+    assert (lowercase_letter ('S') == 's');
+    assert (lowercase_letter ('D') == 'd');
+    assert (lowercase_letter ('E') == 'e');
+    assert (lowercase_letter ('R') == 'r');
+    printf ("fourth lowercase_letter test done!!!\n");
+}
+
+void test_lowercase_letter ()
+{
+    test_lowercase_letter1 ();
+    test_lowercase_letter2 ();
+    test_lowercase_letter3 ();
+    test_lowercase_letter4 ();
+    printf ("LOWERCASE_LETTER WORKS\n\n");
 }
