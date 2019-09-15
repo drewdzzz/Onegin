@@ -1,8 +1,7 @@
 /// @file
 
-
 // Log of changes:
-//{----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Version 1.1
 // -comparator doesn't change strings
 //-----------------------------------------------------------------------------
@@ -27,7 +26,11 @@
 //-----------------------------------------------------------------------------
 // Version 1.8
 // Included Unit-tests for lowercase_letter
-//}----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// Version 1.9
+// Program has been completely changed. Now we have struct with info about our file
+// Btw, it's ready for being moved to library :)
+//-----------------------------------------------------------------------------
 
 
 
@@ -36,6 +39,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+struct file_info;
 struct pointer;
 
 /// @brief Function calculates size of file
@@ -81,12 +85,13 @@ void write_in_file ( pointer* stringpointer, const long number_of_strings);
 
 /// @param  [in] ch A symbol
 /// @return ch if it is a lowercase letter or lowercase analogue of ch
-char lowercase_letter (char ch);
+char lowercase_letter ( char ch);
 
 /// @brief Compare 2 strings from its end ( Ignores symbol if it's not letter)
 /// @return Returns difference between first mismatching symbols in strings or returns 0 if first string if equal second one
 int reversed_strcmp ( const pointer string1, const pointer string2);
 
+file_info file_worker ();
 
 
 /// @brief Complex of tests for direct_strcmp
@@ -110,24 +115,71 @@ struct pointer
     const char* e_ptr;
 };
 
+/// @brief The main part of my programm!!! file_info contains info about size of file, number of symbols, pointer to array with text from file, number of strings and array of struct containing pointers to the beginning and the end of each string
+/// @note Have only one constructor!!! Look at this!!!
+/// @note Destructor free memory
+struct file_info
+{
+    long file_size = 0;
+    long number_of_symbols = 0;
+    char* text_arr = nullptr;
+    long number_of_strings = 0;
+    pointer* stringpointer = nullptr;
+
+    file_info (const long size_of_file, const long symbols_number, char* poem_arr, const long stringnumber, pointer* strptr)
+    {
+            assert (poem_arr);
+            assert (strptr);
+
+            file_size = size_of_file;
+            number_of_symbols = symbols_number;
+            text_arr = poem_arr;
+            number_of_strings = stringnumber;
+            stringpointer = strptr;
+    }
+
+    ~file_info()
+    {
+        free (stringpointer);
+        stringpointer = nullptr;
+
+        free (text_arr);
+        text_arr = nullptr;
+    }
+};
+
+///@brief Max size of filenames
 const int FLEN = 300;
 
 int main()
 {
     tests();
 
-//-----------------------------------------------------------------------------     Вынести в функцию
+    file_info onegin_info = file_worker();
 
+    quicksort (onegin_info.stringpointer, 0, onegin_info.number_of_strings-1, direct_strcmp);
+    printf ("Enter output file name for a normal sort: ");
+    write_in_file ( onegin_info.stringpointer, onegin_info.number_of_strings);
+
+    quicksort (onegin_info.stringpointer, 0, onegin_info.number_of_strings-1, reversed_strcmp);
+    printf ("Enter output file name for a sort from the end: ");
+    write_in_file ( onegin_info.stringpointer, onegin_info.number_of_strings);
+
+    return 0;
+}
+
+file_info file_worker ()
+{
     FILE* stream = open_file ();
-    if (!stream) return 1;
+    assert (stream);
 
     const long file_size = size_of_file ( stream );
 
     char* poem_arr = (char*) calloc ( file_size+2, sizeof(char) );
-    if ( !poem_arr )
+    if (!poem_arr)
     {
         printf ("Memory can't be allocated\n");
-        return 1;
+        assert (poem_arr);
     }
 
     *poem_arr = '\0';
@@ -138,31 +190,15 @@ int main()
 
     fclose (stream);
 
-//-----------------------------------------------------------------------------   Тоже в функцию
-
     const long number_of_strings = stringcount ( poem_arr );
 
     pointer* stringpointer = (pointer*)calloc ( number_of_strings, sizeof (pointer) );
     makeptr (poem_arr, stringpointer, number_of_strings);
 
-//-----------------------------------------------------------------------------
-
-    quicksort (stringpointer, 0, number_of_strings-1, direct_strcmp);
-    printf ("Enter output file name for a normal sort: ");
-    write_in_file ( stringpointer, number_of_strings);
-
-    quicksort (stringpointer, 0, number_of_strings-1, reversed_strcmp);
-    printf ("Enter output file name for a sort from the end: ");
-    write_in_file ( stringpointer, number_of_strings);
-
-    free(stringpointer);
-    stringpointer = NULL;
-
-    free(poem_arr);
-    poem_arr = NULL;
-
-    return 0;
+    file_info information (file_size, number_of_symbols, poem_arr, number_of_strings, stringpointer );
+    return information;
 }
+
 
 FILE* open_file()                             //Параметр по умолчанию
 {
