@@ -13,6 +13,9 @@
 // -Every element of pointer array has 2 pointers now:
 // pointer to end of string (e_str) and pointer to beginning of string (b_str)
 //-----------------------------------------------------------------------------
+// Version 1.4
+// Added reversed comporator, \0 in the beginnng of poem
+//-----------------------------------------------------------------------------
 
 
 #include <stdio.h>
@@ -68,6 +71,8 @@ void write_in_file ( pointer* stringpointer, long number_of_strings);
 /// @return ch if it is a lowercase letter or lowercase analogue of ch
 char lowercase_letter (char ch);
 
+int reversed_strcmp ( const pointer string1, const pointer string2);
+
 
 struct pointer
 {
@@ -79,12 +84,14 @@ int main()
     FILE* stream = open_file ();
     if (!stream) return 1;
     long file_size = size_of_file ( stream );
-    char* poem_arr = (char*) calloc ( file_size+1, sizeof(char*) );
+    char* poem_arr = (char*) calloc ( file_size+2, sizeof(char) );
     if ( !poem_arr )
     {
         printf ("Memory can't be allocated\n");
         return 1;
     }
+    *poem_arr = '\0';
+    poem_arr++;
     long number_of_symbols = fread ( poem_arr, sizeof(char), file_size, stream );
     poem_arr[number_of_symbols] = '\0';
     fclose (stream);
@@ -92,6 +99,8 @@ int main()
     pointer* stringpointer = (pointer*)calloc ( number_of_strings, sizeof (pointer) );
     makeptr (poem_arr, stringpointer, number_of_strings);
     quicksort (stringpointer, 0, number_of_strings-1, direct_strcmp);
+    write_in_file ( stringpointer, number_of_strings);
+    quicksort (stringpointer, 0, number_of_strings-1, reversed_strcmp);
     write_in_file ( stringpointer, number_of_strings);
     free(stringpointer);
     free(poem_arr);
@@ -169,20 +178,19 @@ void makeptr ( char* poem_arr, pointer* pointers, long number_of_strings)
     long i = 1;
     pointers->b_ptr=poem_arr++;
     pointers++;
-    pointer* temp_pointers = pointers;
     while ( i < number_of_strings)
     {
         if ( !(*poem_arr) )
         {
-            (pointers-1)->e_ptr == poem_arr - 1;
+            (pointers-1)->e_ptr = poem_arr - 1;
             pointers->b_ptr = ++poem_arr;
             i++;
             if ( i!= number_of_strings ) pointers++;
         }
         else poem_arr++;
     }
-    (pointers - 1)->e_ptr = poem_arr - 1;
-    pointers = temp_pointers;
+    while (*poem_arr) poem_arr++;
+    pointers->e_ptr = poem_arr - 1;
 }
 
 void mySwap ( pointer* swap_array, long a, long b)
@@ -246,3 +254,19 @@ int direct_strcmp ( const pointer string1, const pointer string2 )
     return lowercase_letter (string1.b_ptr[i]) - lowercase_letter (string2.b_ptr[i]);
 }
 
+int reversed_strcmp ( const pointer string1, const pointer string2)
+{
+    assert ( string1.e_ptr );
+    assert ( string2.e_ptr );
+
+    int i = 0, j = 0;
+    while ( string1.e_ptr [i] != '\0' && string2.e_ptr [j] != '\0' )
+    {
+        while ( lowercase_letter (string1.e_ptr [i]) < 'a' || lowercase_letter (string1.e_ptr [i]) > 'z' ) i--;
+        while ( lowercase_letter (string2.e_ptr [j]) < 'a' || lowercase_letter (string2.e_ptr [j]) > 'z' ) j--;
+        if ( lowercase_letter (string1.e_ptr [i]) != lowercase_letter (string2.e_ptr[i]) ) return lowercase_letter (string1.e_ptr [i]) - lowercase_letter (string2.e_ptr [j]);
+        i--;
+        j--;
+    }
+    return lowercase_letter (string1.e_ptr[i]) - lowercase_letter (string2.e_ptr[j]);
+}
