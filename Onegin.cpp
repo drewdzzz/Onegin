@@ -16,6 +16,9 @@
 // Version 1.4
 // Added reversed comporator, \0 in the beginnng of poem
 //-----------------------------------------------------------------------------
+// Version 1.5
+// Added consts
+//-----------------------------------------------------------------------------
 
 
 #include <stdio.h>
@@ -64,7 +67,7 @@ FILE* open_file ();
 /// @brief Writes strings in file
 /// @param **stringpointer Array containing pointers to strings
 /// @param **number_of_strings Number of strings;
-void write_in_file ( pointer* stringpointer, long number_of_strings);
+void write_in_file ( pointer* stringpointer, const long number_of_strings);
 
 
 /// @param  [in] ch A symbol
@@ -73,17 +76,19 @@ char lowercase_letter (char ch);
 
 int reversed_strcmp ( const pointer string1, const pointer string2);
 
-
 struct pointer
 {
-    char* b_ptr;
-    char* e_ptr;
+    const char* b_ptr;
+    const char* e_ptr;
 };
+
+const int FLEN = 75;
+
 int main()
 {
     FILE* stream = open_file ();
     if (!stream) return 1;
-    long file_size = size_of_file ( stream );
+    const long file_size = size_of_file ( stream );
     char* poem_arr = (char*) calloc ( file_size+2, sizeof(char) );
     if ( !poem_arr )
     {
@@ -92,10 +97,10 @@ int main()
     }
     *poem_arr = '\0';
     poem_arr++;
-    long number_of_symbols = fread ( poem_arr, sizeof(char), file_size, stream );
+    const long number_of_symbols = fread ( poem_arr, sizeof(char), file_size, stream );
     poem_arr[number_of_symbols] = '\0';
     fclose (stream);
-    long number_of_strings = stringcount ( poem_arr );
+    const long number_of_strings = stringcount ( poem_arr );
     pointer* stringpointer = (pointer*)calloc ( number_of_strings, sizeof (pointer) );
     makeptr (poem_arr, stringpointer, number_of_strings);
     quicksort (stringpointer, 0, number_of_strings-1, direct_strcmp);
@@ -109,8 +114,8 @@ int main()
 
 FILE* open_file()
 {
-    FILE *stream;
-    char INPUT_FILE_NAME[75] = "";
+    FILE* stream;
+    char INPUT_FILE_NAME[FLEN] = "";
     scanf("%s", INPUT_FILE_NAME);
     if ( !( stream = fopen ( INPUT_FILE_NAME, "r") ) )
     {
@@ -120,13 +125,14 @@ FILE* open_file()
     return stream;
 }
 
-void write_in_file( pointer* stringpointer, long number_of_strings)
+void write_in_file( pointer* stringpointer, const long number_of_strings)
 {
     assert (stringpointer);
     assert ( isfinite (number_of_strings) );
-    char OUTPUT_FILE_NAME[75] = "";
-    scanf ("%s", OUTPUT_FILE_NAME);
+
     FILE* stream;
+    char OUTPUT_FILE_NAME[FLEN] = "";
+    scanf ("%s", OUTPUT_FILE_NAME);
     if ( !( stream = fopen ( OUTPUT_FILE_NAME, "w") ) )
     {
         fprintf (stderr, "Input file is not open\n");
@@ -145,15 +151,15 @@ long size_of_file (FILE* stream)
     assert ( stream );
 
     fseek ( stream, 0, SEEK_END);
-    long filesize = ftell (stream) * sizeof(char*);
+    const long filesize = ftell (stream) * sizeof(char*);
     fseek ( stream, 0, SEEK_SET);
     return filesize;
 }
 
 long stringcount ( char* poem_arr )
 {
-    assert ( *poem_arr );
     assert (  poem_arr );
+    assert ( *poem_arr );
 
     long scount = 0;
     while (*poem_arr)
@@ -170,8 +176,8 @@ long stringcount ( char* poem_arr )
 
 void makeptr ( char* poem_arr, pointer* pointers, long number_of_strings)
 {
-    assert ( *poem_arr );
     assert ( poem_arr );
+    assert ( *poem_arr );
     assert ( pointers );
     assert ( isfinite (number_of_strings) );
 
@@ -183,9 +189,14 @@ void makeptr ( char* poem_arr, pointer* pointers, long number_of_strings)
         if ( !(*poem_arr) )
         {
             (pointers-1)->e_ptr = poem_arr - 1;
-            pointers->b_ptr = ++poem_arr;
+            pointers->b_ptr = poem_arr+1;
             i++;
-            if ( i!= number_of_strings ) pointers++;
+            printf("STRING: %s\n" ,pointers->b_ptr);
+            if ( i!= number_of_strings )
+                {
+                    pointers++;
+                    poem_arr++;
+                }
         }
         else poem_arr++;
     }
@@ -216,8 +227,8 @@ void quicksort (pointer* arr, long left, long right, int (*strcmp) ( const point
         if ( strcmp( arr[left], arr[right]) > 0 )   mySwap ( arr, left, right );
         return;
     }
-    long beginning = left;
-    long ending = right;
+    const long beginning = left;
+    const long ending = right;
     const pointer mid = arr[ (left + right) / 2];
     while (left < right)
     {
@@ -262,9 +273,9 @@ int reversed_strcmp ( const pointer string1, const pointer string2)
     int i = 0, j = 0;
     while ( string1.e_ptr [i] != '\0' && string2.e_ptr [j] != '\0' )
     {
-        while ( lowercase_letter (string1.e_ptr [i]) < 'a' || lowercase_letter (string1.e_ptr [i]) > 'z' ) i--;
-        while ( lowercase_letter (string2.e_ptr [j]) < 'a' || lowercase_letter (string2.e_ptr [j]) > 'z' ) j--;
-        if ( lowercase_letter (string1.e_ptr [i]) != lowercase_letter (string2.e_ptr[i]) ) return lowercase_letter (string1.e_ptr [i]) - lowercase_letter (string2.e_ptr [j]);
+        while ( (lowercase_letter (string1.e_ptr [i]) < 'a' || lowercase_letter (string1.e_ptr [i]) > 'z') && lowercase_letter (string1.e_ptr [i]) != '\0' ) i--;
+        while ( (lowercase_letter (string2.e_ptr [j]) < 'a' || lowercase_letter (string2.e_ptr [j]) > 'z') && lowercase_letter (string2.e_ptr [j]) != '\0') j--;
+        if ( lowercase_letter (string1.e_ptr [i]) != lowercase_letter (string2.e_ptr[j]) ) return lowercase_letter (string1.e_ptr [i]) - lowercase_letter (string2.e_ptr [j]);
         i--;
         j--;
     }
