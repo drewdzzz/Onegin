@@ -22,6 +22,10 @@
 // Version 1.6
 // Mentor's requests were executed
 //-----------------------------------------------------------------------------
+// Version 1.7
+// Included Unit-tests for comporators
+//-----------------------------------------------------------------------------
+
 
 #include <stdio.h>
 #include <assert.h>
@@ -76,18 +80,31 @@ void write_in_file ( pointer* stringpointer, const long number_of_strings);
 /// @return ch if it is a lowercase letter or lowercase analogue of ch
 char lowercase_letter (char ch);
 
+/// @brief Compare 2 strings from its end ( Ignores symbol if it's not letter)
+/// @return Returns difference between first mismatching symbols in strings or returns 0 if first string if equal second one
 int reversed_strcmp ( const pointer string1, const pointer string2);
 
+/// @brief Complex of tests for direct_strcmp
+void test_direct_strcmp ();
+
+/// @brief Complex of tests for reversed_strcmp
+void test_reversed_strcmp ();
+
+/// @brief Uses all the tests
+void tests();
+
+///@brief Struct containing 2 pointers: pointer to the beginning of string and pointer to the ending of the same string
 struct pointer
 {
     const char* b_ptr;
     const char* e_ptr;
 };
 
-const int FLEN = 75;
+const int FLEN = 300;
 
 int main()
 {
+    tests();
     FILE* stream = open_file ();
     if (!stream) return 1;
     const long file_size = size_of_file ( stream );
@@ -284,4 +301,136 @@ int reversed_strcmp ( const pointer string1, const pointer string2)
         j--;
     }
     return lowercase_letter (string1.e_ptr[i]) - lowercase_letter (string2.e_ptr[j]);
+}
+
+
+
+void tests()
+{
+    char wanna_test = 0;
+    printf ("Wanna test? (Y/N): ");
+    scanf ("%c", &wanna_test);
+    printf ("\n");
+    if ( wanna_test == 'Y' || wanna_test == 'y')
+    {
+        test_direct_strcmp ();
+        test_reversed_strcmp ();
+    }
+}
+
+
+void test_direct_strcmp1 ()
+{
+    const char* string1 = "abcd";
+    const char* string2 = "bcde";
+    pointer ptr1, ptr2;
+    ptr1.b_ptr = string1;
+    ptr2.b_ptr = string2;
+    assert( direct_strcmp (ptr1, ptr2) == -1 );
+    assert( direct_strcmp (ptr2, ptr1) == 1 );
+    printf ("first direct_strcmp test done!!!\n");
+}
+
+void test_direct_strcmp2 ()
+{
+    const char* string1 = "rdgs";
+    const char* string2 = "r";
+    pointer ptr1, ptr2;
+    ptr1.b_ptr = string1;
+    ptr2.b_ptr = string2;
+    assert( direct_strcmp (ptr1, ptr2) == 'd' );
+    assert( direct_strcmp (ptr2, ptr1) == -'d' );
+    printf ("second direct_strcmp test done!!!\n");
+}
+
+void test_direct_strcmp3 ()
+{
+    const char* string1 = "";
+    const char* string2 = "f";
+    pointer ptr1, ptr2;
+    ptr1.b_ptr = string1;
+    ptr2.b_ptr = string2;
+    assert( direct_strcmp (ptr1, ptr2) == -'f' );
+    assert( direct_strcmp (ptr2, ptr1) == 'f' );
+    printf ("third direct_strcmp test done!!!\n");
+}
+
+void test_direct_strcmp4 ()
+{
+    const char* string1 = "fesfesfesf";
+    const char* string2 = "fesfesfesf";
+    pointer ptr1, ptr2;
+    ptr1.b_ptr = string1;
+    ptr2.b_ptr = string2;
+    assert( direct_strcmp (ptr1, ptr2) == 0 );
+    assert( direct_strcmp (ptr2, ptr1) == 0 );
+    printf ("fourth direct_strcmp test done!!!\n");
+}
+
+void test_direct_strcmp ()
+{
+    test_direct_strcmp1 ();
+    test_direct_strcmp2 ();
+    test_direct_strcmp3 ();
+    test_direct_strcmp4 ();
+    printf ("DIRECT_STRCMP WORKS\n\n");
+}
+
+
+
+
+void test_reversed_strcmp1 ()
+{
+    const char* string1 = "abcd";
+    const char* string2 = "abcc";
+    pointer ptr1, ptr2;
+    for (int i = 0; string1[i]; i++) ptr1.e_ptr = &string1[i];
+    for (int i = 0; string2[i]; i++) ptr2.e_ptr = &string2[i];
+    assert( reversed_strcmp (ptr1, ptr2) == 1 );
+    assert( reversed_strcmp (ptr2, ptr1) == -1 );
+    printf ("first reversed_strcmp test done!!!\n");
+}
+
+void test_reversed_strcmp2 ()
+{
+    const char* string1 = "abcccd";
+    const char* string2 = "abcccd";
+    pointer ptr1, ptr2;
+    for (int i = 0; string1[i]; i++) ptr1.e_ptr = &string1[i];
+    for (int i = 0; string2[i]; i++) ptr2.e_ptr = &string2[i];
+    assert( reversed_strcmp (ptr1, ptr2) == 0 );
+    assert( reversed_strcmp (ptr2, ptr1) == 0 );
+    printf ("second reversed_strcmp test done!!!\n");
+}
+
+void test_reversed_strcmp3 ()
+{
+    const char* string1 = "a";
+    const char* string2 = "red'";
+    pointer ptr1, ptr2;
+    for (int i = 0; string1[i]; i++) ptr1.e_ptr = &string1[i];
+    for (int i = 0; string2[i]; i++) ptr2.e_ptr = &string2[i];
+    assert( reversed_strcmp (ptr1, ptr2) == -3 );
+    assert( reversed_strcmp (ptr2, ptr1) == 3 );
+    printf ("third reversed_strcmp test done!!!\n");
+}
+
+void test_reversed_strcmp4 ()
+{
+    const char* string1 = "aesgsrfs-3";
+    const char* string2 = "asgfsfsdr65";
+    pointer ptr1, ptr2;
+    for (int i = 0; string1[i]; i++) ptr1.e_ptr = &string1[i];
+    for (int i = 0; string2[i]; i++) ptr2.e_ptr = &string2[i];
+    assert( reversed_strcmp (ptr1, ptr2) == 1 );
+    assert( reversed_strcmp (ptr2, ptr1) == -1 );
+    printf ("first reversed_strcmp test done!!!\n");
+}
+void test_reversed_strcmp ()
+{
+    test_reversed_strcmp1 ();
+    test_reversed_strcmp2 ();
+    test_reversed_strcmp3 ();
+    test_reversed_strcmp4 ();
+    printf ("REVERSED_STRCMP WORKS\n\n");
 }
