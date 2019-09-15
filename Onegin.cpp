@@ -19,7 +19,9 @@
 // Version 1.5
 // Added consts
 //-----------------------------------------------------------------------------
-
+// Version 1.6
+// Mentor's requests were executed
+//-----------------------------------------------------------------------------
 
 #include <stdio.h>
 #include <assert.h>
@@ -104,8 +106,10 @@ int main()
     pointer* stringpointer = (pointer*)calloc ( number_of_strings, sizeof (pointer) );
     makeptr (poem_arr, stringpointer, number_of_strings);
     quicksort (stringpointer, 0, number_of_strings-1, direct_strcmp);
+    printf ("Enter output file name for a normal sort: ");
     write_in_file ( stringpointer, number_of_strings);
     quicksort (stringpointer, 0, number_of_strings-1, reversed_strcmp);
+    printf ("Enter output file name for a sort from the end: ");
     write_in_file ( stringpointer, number_of_strings);
     free(stringpointer);
     free(poem_arr);
@@ -116,6 +120,7 @@ FILE* open_file()
 {
     FILE* stream;
     char INPUT_FILE_NAME[FLEN] = "";
+    printf ("Enter input file name: ");
     scanf("%s", INPUT_FILE_NAME);
     if ( !( stream = fopen ( INPUT_FILE_NAME, "r") ) )
     {
@@ -151,7 +156,7 @@ long size_of_file (FILE* stream)
     assert ( stream );
 
     fseek ( stream, 0, SEEK_END);
-    const long filesize = ftell (stream) * sizeof(char*);
+    const long filesize = ftell (stream);
     fseek ( stream, 0, SEEK_SET);
     return filesize;
 }
@@ -191,7 +196,6 @@ void makeptr ( char* poem_arr, pointer* pointers, long number_of_strings)
             (pointers-1)->e_ptr = poem_arr - 1;
             pointers->b_ptr = poem_arr+1;
             i++;
-            printf("STRING: %s\n" ,pointers->b_ptr);
             if ( i!= number_of_strings )
                 {
                     pointers++;
