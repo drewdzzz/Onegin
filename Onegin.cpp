@@ -290,6 +290,7 @@ void makeptr ( char* poem_arr, pointer* pointers, long number_of_strings)
         }
         else poem_arr++;
     }
+    poem_arr++;
     while (*poem_arr) poem_arr++;
     pointers->e_ptr = poem_arr - 1;
 }
